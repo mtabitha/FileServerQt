@@ -9,6 +9,8 @@
 #include <QFile>
 #include <QTextCodec>
 #include <QDialog>
+#include <QFileInfo>
+#include <QDateTime>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }

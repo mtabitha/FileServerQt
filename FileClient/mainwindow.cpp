@@ -40,10 +40,6 @@ void MainWindow::UpdatingTable(QDataStream &in)
     table->setColumnCount(3);
     table->setHorizontalHeaderLabels(QStringList() << QString("fileName") << QString("reference") << QString("date"));
 
-    QFile file(folder + "/" + "files.txt");
-    file.open(QFile::WriteOnly | QIODevice::Text);
-    QTextStream out(&file);
-
     int row = 0;
     QString str;
     QTableWidgetItem* item;
@@ -54,15 +50,10 @@ void MainWindow::UpdatingTable(QDataStream &in)
             str.clear();
             in >> str;
             qDebug() << str;
-            out << str << '\0';
             item = new QTableWidgetItem(tr("%1").arg(str));
             table->setItem(row - 1, column, item);
         }
-        out <<'\n';
     }
-    file.close();
-
-
 }
 
 void MainWindow::ReadFile(QDataStream &in)
@@ -78,6 +69,16 @@ void MainWindow::ReadFile(QDataStream &in)
     }
     target.write(line);
     target.close();
+
+    QFile file(folder + "/" + "files.txt");
+    file.open(QFile::Append | QIODevice::Text);
+    QTextStream out(&file);
+
+    QFileInfo info(target);
+    out << info.fileName() << " "
+        << info.absoluteFilePath() << " "
+        << info.created().toString() << " "
+        << info.size() << " Bytes\n";
 }
 
 void MainWindow::WriteFile(QString &fileName)
