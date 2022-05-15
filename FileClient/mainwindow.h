@@ -33,6 +33,11 @@ private:
     void UpdatingTable(QDataStream &in);
     void ReadFile(QDataStream &in);
     void WriteFile(QString &fileName);
+
+    void AppendFilesInformation(QString &fileName);
+    int  MaxLineSize(QFileInfo &file);
+    void CreateFilesInformationTitle(QTextStream& infoFileStream, int& maxLineSize);
+
 private slots:
     void slotReadyRead();
 
@@ -44,6 +49,8 @@ private slots:
     void on_pushButton_3_clicked();
 
     void on_pushButton_4_clicked();
+
+    void on_pushButton_5_clicked();
 
 private:
     Ui::MainWindow *ui;

@@ -62,7 +62,8 @@ void MainWindow::ReadFile(QDataStream &in)
     in >> fileName;
     QByteArray line = socket->readAll();
     fileName = fileName.section("/", -1);
-    QFile target(folder + "/" + fileName);
+    QString path = folder + "/" + fileName;
+    QFile target(path);
     if (!target.open(QIODevice::WriteOnly)) {
         qDebug() << "Can't open file for written";
         return;
@@ -70,15 +71,46 @@ void MainWindow::ReadFile(QDataStream &in)
     target.write(line);
     target.close();
 
-    QFile file(folder + "/" + "files.txt");
-    file.open(QFile::Append | QIODevice::Text);
-    QTextStream out(&file);
+    AppendFilesInformation(path);
+}
 
-    QFileInfo info(target);
-    out << info.fileName() << " "
-        << info.absoluteFilePath() << " "
-        << info.created().toString() << " "
-        << info.size() << " Bytes\n";
+void MainWindow::AppendFilesInformation(QString& downloadedFileName){
+    QFile infoFile(folder + "/" + "files.txt");
+    infoFile.open(QFile::Append | QIODevice::Text);
+    QTextStream out(&infoFile);
+    out.setFieldAlignment(QTextStream::AlignLeft);
+
+    QFileInfo newFile(downloadedFileName);
+    static int maxLineSize = MaxLineSize(newFile) + 1;
+
+    if (infoFile.size() == 0) {
+       CreateFilesInformationTitle(out, maxLineSize);
+    }
+
+    for(int i = 0; i < maxLineSize * 4; ++i ) out << "-"; out << "\n";
+    out.setFieldWidth(maxLineSize);
+    out << "|" + newFile.fileName();
+    out << "|" + newFile.absoluteFilePath();
+    out << "|" + newFile.created().toString();
+    out << "|" + QString::number(newFile.size());
+    out.setFieldWidth(0);
+    out << "|\n" ;
+}
+
+void MainWindow::CreateFilesInformationTitle(QTextStream& infoFileStream, int& maxLineSize) {
+    for(int i = 0; i < maxLineSize * 4; ++i ) infoFileStream << "-"; infoFileStream << "\n";
+    infoFileStream.setFieldWidth(maxLineSize);
+    infoFileStream << "|fileName " << "|reference " << "|date " << "|size ";
+    infoFileStream.setFieldWidth(0);
+    infoFileStream << "|\n" ;
+}
+
+int MainWindow::MaxLineSize(QFileInfo &downloadedFileInfo) {
+    int maxLineSize = downloadedFileInfo.fileName().size();
+    maxLineSize = maxLineSize < downloadedFileInfo.absoluteFilePath().size() ? downloadedFileInfo.absoluteFilePath().size() : maxLineSize;
+    maxLineSize = maxLineSize < downloadedFileInfo.created().toString().size() ? downloadedFileInfo.created().toString().size() : maxLineSize;
+    maxLineSize = maxLineSize < QString::number(downloadedFileInfo.size()).size() ? QString::number(downloadedFileInfo.size()).size() : maxLineSize;
+    return maxLineSize;
 }
 
 void MainWindow::WriteFile(QString &fileName)
@@ -164,3 +196,10 @@ void MainWindow::on_pushButton_4_clicked()
     }
     ui->lineEdit->clear();
 }
+
+void MainWindow::on_pushButton_5_clicked()
+{
+    folder = QFileDialog::getExistingDirectory(this, "Select folder","C:\\");
+    ui->label_2->setText(folder);
+}
+
